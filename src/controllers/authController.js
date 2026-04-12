@@ -1,80 +1,53 @@
-import { prisma } from "../config/db.js";
-import bcrypt from 'bcryptjs';
 import { generateToken } from "../utils/generateToken.js";
+import { AuthService } from "../services/authService.js";
 
-const register = async (req, res) => {
-    const { name, email, password } = req.body;
+const service = new AuthService();
 
-    // Check if user already exists
-    const userExists = await prisma.user.findUnique({
-        where: { email: email }
-    });
+const register = async (req, res, next) => {
+    try {
+        const { name, email } = req.body;
+        const user = await service.register({ ...req.body });
 
-    if (userExists) {
-        return res.status(400).json({ error: "User already exists with this email" });
+        // Generate JWT Token
+        const token = generateToken(user.id, res);
+
+        res.status(201).json({
+            status: "success",
+            data: {
+                user: {
+                    id: user.id,
+                    name: name,
+                    email: email
+                },
+                token: token
+            }
+        });
+    } catch (err) {
+        next(err);
     }
-
-    // Hash Password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-
-    // Create User
-    const user = await prisma.user.create({
-        data: {
-            name: name,
-            email: email,
-            password: hashedPassword
-        }
-    });
-
-    // Generate JWT Token
-    const token = generateToken(user.id, res);
-
-    res.status(201).json({
-        status: "success",
-        data: {
-            user: {
-                id: user.id,
-                name: name,
-                email: email
-            },
-            token: token
-        }
-    });
 };
 
-const login = async (req, res) => {
-    const { email, password } = req.body;
+const login = async (req, res, next) => {
+    try {
+        const { email } = req.body;
+        const user = await service.login({ ...req.body });
 
-    // Check if user email exists
-    const user = await prisma.user.findUnique({
-        where: { email: email }
-    });
+        // Generate JWT Token
+        const token = generateToken(user.id, res);
 
-    if (!user) {
-        return res.status(401).json({ message: "Invalid email or password"});
+        res.status(201).json({
+            status: "success",
+            data: {
+                user: {
+                    id: user.id,
+                    email: email
+                },
+                token: token
+            }
+        });
+    } catch (err) {
+        next(err);
     }
-
-    // Verify Password
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-
-    if (!isPasswordValid) {
-        return res.status(401).json({ message: "Invalid email or password"});
-    }
-
-    // Generate JWT Token
-    const token = generateToken(user.id, res);
-
-    res.status(201).json({
-        status: "success",
-        data: {
-            user: {
-                id: user.id,
-                email: email
-            },
-            token: token
-        }
-    });
 };
 
 const logout = async (req, res) => {
