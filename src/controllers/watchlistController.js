@@ -1,45 +1,22 @@
 import { prisma } from "../config/db.js";
+import { WatchlistService } from "../services/watchlistService.js";
 
-const addToWatchlist = async (req, res) => {
-    const { movieId, status, rating, notes } = req.body;
+const service = new WatchlistService();
 
-    // Verify movie exists
-    const movie = await prisma.movie.findUnique({
-        where: { id: movieId }
-    });
-
-    if (!movie) {
-        return res.status(404).json({ error: "Movie not found" });
-    }
-
-    // Check if already added
-    const existingInWatchlist = await prisma.watchlistItem.findUnique({
-        where: { 
-            userId_movieId: {
-                userId: req.user.id,
-                movieId: movieId
-            } 
-        }
-    });
-
-    if (existingInWatchlist) {
-        return res.status(400).json({ error: "Movie already in the watchlist" });
-    }
-
-    const watchlistItem = await prisma.watchlistItem.create({
-        data: {
+const addToWatchlist = async (req, res, next) => {
+    try {
+        const watchlistItem = await service.addToWatchlist({
             userId: req.user.id,
-            movieId: movieId,
-            status: status || "PLANNED",
-            rating: rating,
-            notes: notes
-        }
-    });
+            ...req.body
+        });
 
-    res.status(201).json({
-        status: "success",
-        data: { watchlistItem }
-    });
+        res.status(201).json({
+            status: "success",
+            data: { watchlistItem }
+        });
+    } catch (err) {
+        next(err)
+    }
 };
 
 const updateWatchlistItem = async (req, res) => {
