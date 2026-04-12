@@ -85,7 +85,8 @@ src/
 
 Some of the improvements I plan (or already started):
 
-- [ ] Refactor to service layer architecture  
+- [ ] Refactor to service layer architecture - IN PROGRESS
+- [ ] Add Dependency Injection
 - [ ] Add more request validation (Zod)  
 - [ ] Improve error handling (centralized middleware)  
 - [ ] Add logging  
