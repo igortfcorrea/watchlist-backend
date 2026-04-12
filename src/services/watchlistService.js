@@ -36,4 +36,52 @@ export class WatchlistService {
             }
         });
     }
+
+    async updateItem({ id, userId, status, rating, notes }) {
+        // Find watchlist item and verify ownership
+        const watchlistItem = await prisma.watchlistItem.findUnique({
+            where: { id: id }
+        });
+
+        if (!watchlistItem) {
+            throw new AppError("Watchlist item not found", 404);
+        }
+
+        // Ensure only owner can delete
+        if (watchlistItem.userId !== userId) {
+            throw new AppError("Not allowed to update this watchlist item", 403);
+        }
+
+        // Build update data
+        const updateData = {};
+        if (status !== undefined) updateData.status = status.toUpperCase();
+        if (rating !== undefined) updateData.rating = rating;
+        if (notes !== undefined) updateData.notes = notes;
+
+        // Update watchlist item
+        return prisma.watchlistItem.update({
+            where: { id: id },
+            data: updateData
+        });
+    }
+
+    async deleteItem({ id, userId }) {
+        // Find watchlist item and verify ownership
+        const watchlistItem = await prisma.watchlistItem.findUnique({
+            where: { id: id }
+        });
+
+        if (!watchlistItem) {
+            throw new AppError("Watchlist item not found", 404);
+        }
+
+        // Ensure only owner can delete
+        if (watchlistItem.userId !== userId) {
+            throw new AppError("Not allowed to delete this watchlist item", 403);
+        }
+
+        await prisma.watchlistItem.delete({
+            where: { id: id }
+        });
+    }
 }
