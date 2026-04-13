@@ -10,7 +10,6 @@ const startServer = async () => {
     console.log(`Server running on port ${env.PORT} [${env.NODE_ENV}]`);
   });
 
-  // Graceful shutdown helper
   const shutdown = async (signal, err) => {
     if (err) console.error(signal, err);
     else console.log(`${signal} received, shutting down gracefully`);
@@ -27,11 +26,11 @@ const startServer = async () => {
   // Handle uncaught exceptions
   process.on('uncaughtException', (err) => shutdown('uncaughtException', err));
 
-  // Graceful shutdown on SIGTERM (e.g. Docker, cloud platforms)
+  // Shutdown on SIGTERM (e.g. Docker, cloud platforms)
   process.on('SIGTERM', () => shutdown('SIGTERM'));
 
-  // Graceful shutdown on SIGINT (e.g. Ctrl+C locally)
-  process.on('SIGINT', () => shutdown('SIGINT'));              // 👈 was missing
+  // Shutdown on SIGINT (e.g. Ctrl+C locally)
+  process.on('SIGINT', () => shutdown('SIGINT'));
 };
 
 startServer();
