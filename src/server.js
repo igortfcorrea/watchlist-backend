@@ -1,56 +1,37 @@
-import express from 'express';
-import { config } from 'dotenv';
-import { connectDB, disconnectDB } from "./config/db.js"
+import 'dotenv/config';
+import { app } from './app.js';
+import { env } from './config/env.js';
+import { connectDB, disconnectDB } from './config/db.js';
 
-// Import Routes
-import authRoutes from "./modules/auth/authRoutes.js";
-import watchlistRoutes from "./modules/watchlist/watchlistRoutes.js";
+const startServer = async () => {
+  await connectDB();
 
-// Import Middlewares
-import { errorMiddleware } from './middlewares/errorMiddleware.js';
+  const server = app.listen(env.PORT, () => {
+    console.log(`Server running on port ${env.PORT} [${env.NODE_ENV}]`);
+  });
 
-config();
-connectDB();
+  // Graceful shutdown helper
+  const shutdown = async (signal, err) => {
+    if (err) console.error(signal, err);
+    else console.log(`${signal} received, shutting down gracefully`);
 
-const app = express();
-
-// Body parsing middlewares
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-// API Routes
-app.use("/auth", authRoutes);
-app.use("/watchlist", watchlistRoutes);
-
-// Error handling middleware
-app.use(errorMiddleware);
-
-const PORT = 5001;
-app.listen(PORT, () => {
-    console.log(`Server running on PORT ${PORT}`)
-});
-
-// Handle unhandled promise rejections (e.g., database connection errors)
-process.on("unhandledRejection", (err) => {
-    console.error("Unhandled Rejection:", err);
     server.close(async () => {
-        await disconnectDB();
-        process.exit(1);
+      await disconnectDB();
+      process.exit(err ? 1 : 0);
     });
-});
+  };
 
-// Handle uncaught exceptions
-process.on("uncaughtException", async (err) => {
-    console.error("Uncaught Exception:", err);
-    await disconnectDB();
-    process.exit(1);   
-});
+  // Handle unhandled promise rejections
+  process.on('unhandledRejection', (err) => shutdown('unhandledRejection', err));
 
-// Graceful shutdown
-process.on("SIGTERM", async () => {
-    console.error("SIGTERM received, shutting down gracefully");
-    server.close(async () => {
-        await disconnectDB();
-        process.exit(0);
-    });
-});
+  // Handle uncaught exceptions
+  process.on('uncaughtException', (err) => shutdown('uncaughtException', err));
+
+  // Graceful shutdown on SIGTERM (e.g. Docker, cloud platforms)
+  process.on('SIGTERM', () => shutdown('SIGTERM'));
+
+  // Graceful shutdown on SIGINT (e.g. Ctrl+C locally)
+  process.on('SIGINT', () => shutdown('SIGINT'));              // 👈 was missing
+};
+
+startServer();
