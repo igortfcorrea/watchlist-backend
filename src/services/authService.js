@@ -1,11 +1,14 @@
-import { prisma } from "../config/db.js";
-import bcrypt from 'bcryptjs';
 import { AppError } from "../errors/AppError.js";
 
 export class AuthService {
+    constructor(prisma, bcrypt) {
+        this.prisma = prisma;
+        this.bcrypt = bcrypt;
+    };
+
     async register({ name, email, password }) {
         // Check if user already exists
-        const userExists = await prisma.user.findUnique({
+        const userExists = await this.prisma.user.findUnique({
             where: { email: email }
         });
 
@@ -14,11 +17,11 @@ export class AuthService {
         }
 
         // Hash Password
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(password, salt);
+        const salt = await this.bcrypt.genSalt(10);
+        const hashedPassword = await this.bcrypt.hash(password, salt);
 
         // Create User
-        return await prisma.user.create({
+        return await this.prisma.user.create({
             data: {
                 name: name,
                 email: email,
@@ -29,7 +32,7 @@ export class AuthService {
 
     async login({ email, password }) {
         // Check if user email exists
-        const user = await prisma.user.findUnique({
+        const user = await this.prisma.user.findUnique({
             where: { email: email }
         });
 
@@ -38,7 +41,7 @@ export class AuthService {
         }
 
         // Verify Password
-        const isPasswordValid = await bcrypt.compare(password, user.password);
+        const isPasswordValid = await this.bcrypt.compare(password, user.password);
 
         if (!isPasswordValid) {
             throw new AppError("Invalid email or password", 401)

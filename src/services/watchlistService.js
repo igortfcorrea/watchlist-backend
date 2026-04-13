@@ -1,10 +1,13 @@
-import { prisma } from "../config/db.js";
 import { AppError } from "../errors/AppError.js";
 
 export class WatchlistService {
+    constructor(prisma) {
+        this.prisma = prisma;
+    };
+
     async addToWatchlist({ userId, movieId, status, rating, notes }) {
         // Verify movie exists
-        const movie = await prisma.movie.findUnique({
+        const movie = await this.prisma.movie.findUnique({
             where: { id: movieId }
         });
 
@@ -13,7 +16,7 @@ export class WatchlistService {
         }
 
         // Check if already added
-        const existingInWatchlist = await prisma.watchlistItem.findUnique({
+        const existingInWatchlist = await this.prisma.watchlistItem.findUnique({
             where: { 
                 userId_movieId: {
                     userId: userId,
@@ -26,7 +29,7 @@ export class WatchlistService {
             throw new AppError("Movie already in the watchlist", 400);
         }
 
-        return prisma.watchlistItem.create({
+        return this.prisma.watchlistItem.create({
             data: {
                 userId: userId,
                 movieId: movieId,
@@ -39,7 +42,7 @@ export class WatchlistService {
 
     async updateItem({ id, userId, status, rating, notes }) {
         // Find watchlist item and verify ownership
-        const watchlistItem = await prisma.watchlistItem.findUnique({
+        const watchlistItem = await this.prisma.watchlistItem.findUnique({
             where: { id: id }
         });
 
@@ -59,7 +62,7 @@ export class WatchlistService {
         if (notes !== undefined) updateData.notes = notes;
 
         // Update watchlist item
-        return prisma.watchlistItem.update({
+        return this.prisma.watchlistItem.update({
             where: { id: id },
             data: updateData
         });
@@ -67,7 +70,7 @@ export class WatchlistService {
 
     async deleteItem({ id, userId }) {
         // Find watchlist item and verify ownership
-        const watchlistItem = await prisma.watchlistItem.findUnique({
+        const watchlistItem = await this.prisma.watchlistItem.findUnique({
             where: { id: id }
         });
 
@@ -80,7 +83,7 @@ export class WatchlistService {
             throw new AppError("Not allowed to delete this watchlist item", 403);
         }
 
-        await prisma.watchlistItem.delete({
+        await this.prisma.watchlistItem.delete({
             where: { id: id }
         });
     }
