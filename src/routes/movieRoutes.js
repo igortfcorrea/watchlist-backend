@@ -9,6 +9,3 @@ router.get("/", (req, res) => {
 })
 
 export default router;
-
-
-// Infra & DevOps: Kubernetes, AWS, Terraform, Pipeline...
