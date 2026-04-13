@@ -3,9 +3,8 @@ import { config } from 'dotenv';
 import { connectDB, disconnectDB } from "./config/db.js"
 
 // Import Routes
-import movieRoutes from "./routes/movieRoutes.js";
-import authRoutes from "./routes/authRoutes.js";
-import watchlistRoutes from "./routes/watchlistRoutes.js";
+import authRoutes from "./modules/auth/authRoutes.js";
+import watchlistRoutes from "./modules/watchlist/watchlistRoutes.js";
 
 // Import Middlewares
 import { errorMiddleware } from './middlewares/errorMiddleware.js';
@@ -20,7 +19,6 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // API Routes
-app.use("/movies", movieRoutes);
 app.use("/auth", authRoutes);
 app.use("/watchlist", watchlistRoutes);
 

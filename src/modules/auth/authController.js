@@ -1,4 +1,4 @@
-import { generateToken } from "../utils/generateToken.js";
+import { generateToken } from "../../utils/generateToken.js";
 
 export class AuthController {
     constructor(authService) {
