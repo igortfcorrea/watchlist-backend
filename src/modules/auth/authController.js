@@ -7,7 +7,6 @@ export class AuthController {
   
     register = async (req, res, next) => {
         try {
-            const { name, email } = req.body;
             const user = await this.service.register({ ...req.body });
     
             // Generate JWT Token
@@ -18,8 +17,8 @@ export class AuthController {
                 data: {
                     user: {
                         id: user.id,
-                        name: name,
-                        email: email
+                        name: user.name,
+                        email: user.email
                     },
                     token: token
                 }
@@ -37,7 +36,7 @@ export class AuthController {
             // Generate JWT Token
             const token = generateToken(user.id, res);
     
-            res.status(201).json({
+            res.status(200).json({
                 status: "success",
                 data: {
                     user: {
