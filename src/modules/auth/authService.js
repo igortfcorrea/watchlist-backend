@@ -1,4 +1,5 @@
 import { AppError } from "../../errors/AppError.js";
+import { logger } from "../../config/logger.js";
 
 export class AuthService {
     constructor(prisma, bcrypt) {
@@ -21,13 +22,16 @@ export class AuthService {
         const hashedPassword = await this.bcrypt.hash(password, salt);
 
         // Create User
-        return await this.prisma.user.create({
+        const user = await this.prisma.user.create({
             data: {
                 name: name,
                 email: email,
                 password: hashedPassword
             }
         });
+
+        logger.info({ userId: user.id }, "User registered");
+        return user;
     }
 
     async login({ email, password }) {
@@ -47,6 +51,7 @@ export class AuthService {
             throw new AppError("Invalid email or password", 401)
         }
 
+        logger.info({ userId: user.id }, "User logged-in");
         return user;
     }
 }

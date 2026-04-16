@@ -1,4 +1,5 @@
 import { AppError } from "../../errors/AppError.js";
+import { logger } from "../../config/logger.js";
 
 export class WatchlistService {
     constructor(prisma) {
@@ -29,7 +30,7 @@ export class WatchlistService {
             throw new AppError("Movie already in the watchlist", 400);
         }
 
-        return this.prisma.watchlistItem.create({
+        const watchlistItem = this.prisma.watchlistItem.create({
             data: {
                 userId: userId,
                 movieId: movieId,
@@ -38,6 +39,9 @@ export class WatchlistService {
                 notes: notes
             }
         });
+
+        logger.info({ watchlistItemId: watchlistItem.id }, "WatchlistItem added");
+        return watchlistItem;
     }
 
     async updateItem({ id, userId, status, rating, notes }) {
@@ -62,10 +66,13 @@ export class WatchlistService {
         if (notes !== undefined) updateData.notes = notes;
 
         // Update watchlist item
-        return this.prisma.watchlistItem.update({
+        const newWatchlistItem = this.prisma.watchlistItem.update({
             where: { id: id },
             data: updateData
         });
+
+        logger.info({ watchlistItemId: newWatchlistItem.id }, "WatchlistItem updated");
+        return newWatchlistItem
     }
 
     async deleteItem({ id, userId }) {
@@ -86,5 +93,7 @@ export class WatchlistService {
         await this.prisma.watchlistItem.delete({
             where: { id: id }
         });
+
+        logger.info({ watchlistItemId: watchlistItem.id }, "WatchlistItem deleted");
     }
 }

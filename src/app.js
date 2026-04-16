@@ -1,8 +1,9 @@
 import express from 'express';
 import cors from 'cors';
 
-import { errorMiddleware } from './middlewares/errorMiddleware.js';
 import { AppError } from './errors/AppError.js';
+import { errorMiddleware } from './middlewares/errorMiddleware.js';
+import { requestLogger } from './middlewares/requestLogger.js';
 
 import authRoutes from './modules/auth/authRoutes.js';
 import watchlistRoutes from './modules/watchlist/watchlistRoutes.js';
@@ -15,6 +16,9 @@ app.use(cors());
 // Body parsing
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Middlewares
+app.use(requestLogger);
 
 // Routes
 app.use('/auth', authRoutes);

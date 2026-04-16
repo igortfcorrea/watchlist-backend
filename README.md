@@ -88,8 +88,7 @@ Some of the improvements I plan (or already started):
 - [X] Refactor to service layer architecture
 - [X] Add Dependency Injection
 - [X] Add more request validation (Zod)  
-- [ ] Improve error handling (centralized middleware)  
-- [ ] Add logging  
+- [X] Add logging  
 - [ ] Add tests (unit/integration)  
 - [ ] Dockerize the application  
 - [ ] CI/CD pipeline  
